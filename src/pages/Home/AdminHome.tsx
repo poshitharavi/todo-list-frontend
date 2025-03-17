@@ -23,6 +23,8 @@ import { Employee, EmployeeService } from "../../services/employee.service";
 import AddEmployeeModal from "../../components/admin/home/AddEmployeeModal";
 import EditEmployeeModal from "../../components/admin/home/EditEmployeeModal";
 import AddTaskModal from "../../components/admin/home/AddTaskModal";
+import { TaskAnalytics, TaskService } from "../../services/task.service";
+import AnalyticsCard from "../../components/admin/home/AnalyticsCard";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -72,6 +74,9 @@ const AdminHome = () => {
   const [selectedAssignedId, setSelectedAssignedId] = useState<number | null>(
     null
   );
+  const [analyticsData, setAnalyticsData] = useState<TaskAnalytics[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -86,6 +91,18 @@ const AdminHome = () => {
       }
     };
 
+    const fetchAnalytics = async () => {
+      try {
+        const data = await TaskService.getTaskAnalytics();
+        setAnalyticsData(data);
+      } catch (err) {
+        setAnalyticsError("Failed to load analytics data");
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
     fetchEmployees();
   }, []);
 
@@ -257,15 +274,25 @@ const AdminHome = () => {
         </Box>
 
         <TabPanel value={tabValue} index={0}>
-          <Paper sx={{ p: 3, height: 600 }}>
-            <Typography variant="h5" gutterBottom>
-              Analytics Overview
+          <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+            Task Analytics Overview
+          </Typography>
+
+          {analyticsLoading ? (
+            <Box display="flex" justifyContent="center" mt={4}>
+              <CircularProgress />
+            </Box>
+          ) : analyticsError ? (
+            <Alert severity="error">{analyticsError}</Alert>
+          ) : analyticsData.length === 0 ? (
+            <Typography variant="body1" color="text.secondary">
+              No analytics data available
             </Typography>
-            <Typography color="text.secondary">
-              Analytics dashboard coming soon
-            </Typography>
-            {/* Add analytics components here */}
-          </Paper>
+          ) : (
+            analyticsData.map((analytics) => (
+              <AnalyticsCard key={analytics.userId} analytics={analytics} />
+            ))
+          )}
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>

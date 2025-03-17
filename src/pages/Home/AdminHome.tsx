@@ -10,10 +10,12 @@ import {
   Paper,
   CircularProgress,
   Alert,
+  Snackbar,
 } from "@mui/material";
 import AddEmployeeButton from "../../components/admin/home/AddEmployeeBtn";
 import EmployeesDataGrid from "../../components/admin/home/EmployeesDataGrid";
 import { Employee, EmployeeService } from "../../services/employee.service";
+import AddEmployeeModal from "../../components/admin/home/AddEmployeeModal";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -50,6 +52,8 @@ const AdminHome = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -67,13 +71,22 @@ const AdminHome = () => {
     fetchEmployees();
   }, []);
 
+  const handleNewEmployeeSuccessMessage = async () => {
+    try {
+      const data = await EmployeeService.getEmployees();
+      setEmployees(data);
+      setSuccessMessage("Employee added successfully!");
+    } catch (err) {
+      setError("Failed to refresh employee list");
+    }
+  };
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
   const handleAddEmployee = () => {
-    // Implement add employee logic
-    console.log("Add employee clicked");
+    setIsModalOpen(true);
   };
 
   const handleDelete = (id: number) => {
@@ -109,6 +122,20 @@ const AdminHome = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, pb: 4 }}>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity="success"
+          onClose={() => setSuccessMessage(null)}
+          sx={{ width: "100%" }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
       <Box
         sx={{
           display: "flex",
@@ -164,6 +191,11 @@ const AdminHome = () => {
           />
         </TabPanel>
       </Box>
+      <AddEmployeeModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleNewEmployeeSuccessMessage}
+      />
     </Container>
   );
 };

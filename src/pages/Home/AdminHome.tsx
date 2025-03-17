@@ -22,6 +22,7 @@ import EmployeesDataGrid from "../../components/admin/home/EmployeesDataGrid";
 import { Employee, EmployeeService } from "../../services/employee.service";
 import AddEmployeeModal from "../../components/admin/home/AddEmployeeModal";
 import EditEmployeeModal from "../../components/admin/home/EditEmployeeModal";
+import AddTaskModal from "../../components/admin/home/AddTaskModal";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,6 +68,10 @@ const AdminHome = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [selectedAssignedId, setSelectedAssignedId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -95,6 +100,15 @@ const AdminHome = () => {
       );
     } catch (err) {
       setError("Failed to refresh employee list");
+    }
+  };
+
+  const handleNewTaskSuccess = async () => {
+    try {
+      // Add task list refresh logic if needed
+      setSuccessMessage("Task created successfully!");
+    } catch (err) {
+      setError("Failed to refresh data");
     }
   };
 
@@ -148,9 +162,9 @@ const AdminHome = () => {
     }
   };
 
-  const handleAssignTask = (id: number) => {
-    // Implement task assignment
-    console.log("Assign task to employee:", id);
+  const handleAssignTask = (employeeId: number) => {
+    setSelectedAssignedId(employeeId);
+    setIsTaskModalOpen(true);
   };
 
   if (loading) {
@@ -279,6 +293,15 @@ const AdminHome = () => {
         onClose={() => setIsEditModalOpen(false)}
         onSuccess={handleEditEmployeeSuccess}
         employee={selectedEmployee}
+      />
+      <AddTaskModal
+        open={isTaskModalOpen}
+        onClose={() => {
+          setIsTaskModalOpen(false);
+          setSelectedAssignedId(null);
+        }}
+        onSuccess={handleNewTaskSuccess}
+        assignedToId={selectedAssignedId || undefined}
       />
     </Container>
   );

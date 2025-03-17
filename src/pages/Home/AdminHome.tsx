@@ -11,11 +11,17 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import AddEmployeeButton from "../../components/admin/home/AddEmployeeBtn";
 import EmployeesDataGrid from "../../components/admin/home/EmployeesDataGrid";
 import { Employee, EmployeeService } from "../../services/employee.service";
 import AddEmployeeModal from "../../components/admin/home/AddEmployeeModal";
+import EditEmployeeModal from "../../components/admin/home/EditEmployeeModal";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,6 +60,13 @@ const AdminHome = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -70,6 +83,20 @@ const AdminHome = () => {
 
     fetchEmployees();
   }, []);
+
+  const handleEditEmployeeSuccess = async () => {
+    try {
+      const data = await EmployeeService.getEmployees();
+      setEmployees(data);
+      setSuccessMessage(
+        selectedEmployee
+          ? "Employee updated successfully!"
+          : "Employee added successfully!"
+      );
+    } catch (err) {
+      setError("Failed to refresh employee list");
+    }
+  };
 
   const handleNewEmployeeSuccessMessage = async () => {
     try {
@@ -90,13 +117,35 @@ const AdminHome = () => {
   };
 
   const handleDelete = (id: number) => {
-    // Implement delete logic
-    console.log("Delete employee:", id);
+    setEmployeeToDelete(id);
+    setDeleteConfirmOpen(true);
   };
 
   const handleEdit = (id: number) => {
-    // Implement edit logic
-    console.log("Edit employee:", id);
+    const employee = employees.find((e) => e.id === id);
+    if (employee) {
+      setSelectedEmployee(employee);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!employeeToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await EmployeeService.deleteEmployee(employeeToDelete);
+      setEmployees((prev) => prev.filter((emp) => emp.id !== employeeToDelete));
+      setSuccessMessage("Employee deleted successfully!");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to delete employee"
+      );
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
+      setEmployeeToDelete(null);
+    }
   };
 
   const handleAssignTask = (id: number) => {
@@ -136,6 +185,35 @@ const AdminHome = () => {
           {successMessage}
         </Alert>
       </Snackbar>
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete Employee</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this employee?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setDeleteConfirmOpen(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={confirmDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? <CircularProgress size={24} /> : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Box
         sx={{
           display: "flex",
@@ -195,6 +273,12 @@ const AdminHome = () => {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleNewEmployeeSuccessMessage}
+      />
+      <EditEmployeeModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleEditEmployeeSuccess}
+        employee={selectedEmployee}
       />
     </Container>
   );

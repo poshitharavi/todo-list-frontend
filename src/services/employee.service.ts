@@ -21,6 +21,13 @@ export interface EmployeeRegistrationPayload {
   departmentId: number;
 }
 
+export interface EmployeeUpdatePayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  departmentId: number;
+}
+
 interface EmployeesResponse {
   statusCode: number;
   message: string;
@@ -51,6 +58,43 @@ export const EmployeeService = {
       throw new Error(response.data.message || "Registration failed");
     } catch (error) {
       console.error("Error registering employee:", error);
+      throw error;
+    }
+  },
+  getEmployeeById: async (id: number): Promise<Employee> => {
+    try {
+      const response = await api.get(`/users/employee/${id}`);
+      if (response.data.statusCode === 200) {
+        return response.data.body.employee;
+      }
+      throw new Error("Failed to fetch employee");
+    } catch (error) {
+      console.error("Error fetching employee:", error);
+      throw error;
+    }
+  },
+
+  updateEmployee: async (id: number, payload: EmployeeUpdatePayload) => {
+    try {
+      const response = await api.patch(`/users/employee/${id}`, payload);
+      if (response.data.statusCode === 200) {
+        return response.data;
+      }
+      throw new Error(response.data.message || "Update failed");
+    } catch (error) {
+      console.error("Error updating employee:", error);
+      throw error;
+    }
+  },
+  deleteEmployee: async (id: number) => {
+    try {
+      const response = await api.delete(`/users/employee/${id}`);
+      if (response.data.statusCode === 200) {
+        return response.data;
+      }
+      throw new Error(response.data.message || "Delete failed");
+    } catch (error) {
+      console.error("Error deleting employee:", error);
       throw error;
     }
   },

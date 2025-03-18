@@ -56,6 +56,7 @@ function a11yProps(index: number) {
 
 const AdminHome = () => {
   const { user } = useAuth();
+  const [tabValue, setTabValue] = useState(0);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +136,10 @@ const AdminHome = () => {
     } catch (err) {
       setError("Failed to refresh employee list");
     }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   const handleAddEmployee = () => {
@@ -257,6 +262,7 @@ const AdminHome = () => {
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs
             value={tabValue}
+            onChange={handleTabChange}
             aria-label="admin dashboard tabs"
             variant="scrollable"
             scrollButtons="auto"

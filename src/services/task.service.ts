@@ -32,6 +32,24 @@ export interface CreateTaskPayload {
   priority: string;
 }
 
+export interface Task {
+  id: number;
+  name: string;
+  description: string;
+  priority: string;
+  dueDate: string;
+  isCompleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TaskListResponse {
+  statusCode: number;
+  body: {
+    tasks: Task[];
+  };
+}
+
 export const TaskService = {
   getPriorities: async (): Promise<string[]> => {
     try {
@@ -69,6 +87,32 @@ export const TaskService = {
       throw new Error("Failed to fetch analytics");
     } catch (error) {
       console.error("Error fetching analytics:", error);
+      throw error;
+    }
+  },
+  getMyTasks: async (): Promise<Task[]> => {
+    try {
+      const response = await api.get<TaskListResponse>("/tasks/my");
+      if (response.data.statusCode === 200) {
+        return response.data.body.tasks;
+      }
+      throw new Error("Failed to fetch tasks");
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      throw error;
+    }
+  },
+  updateStatus: async (taskId: number, isCompleted: boolean) => {
+    try {
+      const response = await api.patch(`/tasks/status-update/${taskId}`, {
+        isCompleted,
+      });
+      if (response.data.statusCode === 200) {
+        return response.data;
+      }
+      throw new Error(response.data.message || "Status update failed");
+    } catch (error) {
+      console.error("Error updating task status:", error);
       throw error;
     }
   },

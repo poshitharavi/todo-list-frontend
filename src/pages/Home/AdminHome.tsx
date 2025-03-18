@@ -139,6 +139,8 @@ const AdminHome = () => {
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    console.log(event);
+
     setTabValue(newValue);
   };
 

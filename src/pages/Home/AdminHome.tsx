@@ -7,7 +7,6 @@ import {
   Tab,
   Box,
   Typography,
-  Paper,
   CircularProgress,
   Alert,
   Snackbar,
@@ -139,7 +138,7 @@ const AdminHome = () => {
     }
   };
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (newValue: number) => {
     setTabValue(newValue);
   };
 
